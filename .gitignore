@@ -1,0 +1,61 @@
+# Archivos de entorno y credenciales (Critico: Jamas subir a GitHub)
+.env
+.env.*
+*.env
+!.env.example
+
+# Dependencias Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+
+# Entornos y cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+
+# Modelos pesados de rembg / ONNX
+*.onnx
+.u2net/
+
+# Compilacion y bundles de Frontend
+dist/
+dist-ssr/
+build/
+.vite/
+*.local
+
+# Bases de datos y volumenes locales
+postgres_data/
+mongo_data/
+*.sqlite3
+*.db
+
+# Logs y archivos temporales
+*.log
+logs/
+*.tmp
+*.temp
+
+# Archivos de sistema operativo y editores
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
