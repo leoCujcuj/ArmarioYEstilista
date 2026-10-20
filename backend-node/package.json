@@ -1,0 +1,28 @@
+{
+  "name": "armario-backend-node",
+  "version": "1.0.0",
+  "description": "API Node.js para Armario IA",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "@google/genai": "^2.30.0",
+    "axios": "^1.16.0",
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2",
+    "form-data": "^4.0.5",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^7.0.3",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.10.0",
+    "redis": "^5.12.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
