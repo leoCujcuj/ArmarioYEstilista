@@ -1,0 +1,102 @@
+================================================================================
+          DOCUMENTACIÓN INTEGRAL: ARMARIO IA & ESTILISTA PERSONAL
+================================================================================
+
+1. VISIÓN GENERAL
+--------------------------------------------------------------------------------
+Armario IA es una plataforma de gestión de moda inteligente que digitaliza el
+guardarropa del usuario, analiza su biometría (colorimetría y morfología) y 
+utiliza modelos de lenguaje avanzados (Gemini 2.0) para actuar como un 
+estilista personal y personal shopper 24/7.
+
+2. ARQUITECTURA TÉCNICA
+--------------------------------------------------------------------------------
+El proyecto sigue una arquitectura de microservicios:
+
+A. BACKEND DE PROCESAMIENTO (Python + FastAPI):
+   - Especializado en visión artificial.
+   - Utiliza la librería 'Rembg' para eliminar el fondo de las fotos de ropa.
+   - Endpoint: POST /prenda -> Recibe imagen, devuelve base64 sin fondo.
+
+B. BACKEND DE LÓGICA (Node.js + Express):
+   - Orquestador principal.
+   - Base de Datos: MongoDB (Mongoose) para prendas, usuarios, looks y usos.
+   - Conexión con IA: OpenRouter (Modelo: Gemini 2.0 Flash).
+   - Gestión de archivos: Multer (Buffer memory).
+
+C. FRONTEND (React + TypeScript):
+   - Interfaz de usuario de alta fidelidad.
+   - Estilizado: CSS Modules (Diseño minimalista, paleta oscura y dorada).
+   - Iconografía: Lucide-react (Sin emojis, enfoque profesional).
+
+3. LISTADO DE ENDPOINTS (BACKEND NODE.JS)
+--------------------------------------------------------------------------------
+--- AUTENTICACIÓN ---
+- POST /api/auth/register: Registra usuario con encriptación bcrypt.
+- POST /api/auth/login: Devuelve JWT y datos de usuario.
+- GET /api/auth/me: Obtiene perfil del usuario actual.
+- PUT /api/auth/me: Actualiza perfil. Procesa fotos de cara/cuerpo con IA 
+  para detectar biometría (solo si los campos están vacíos).
+
+--- ARMARIO (PRENDAS) ---
+- POST /api/prendas: Envía foto a Python (quitar fondo), luego a IA para 
+  etiquetado (Nombre exacto, material, estilo) y guarda en MongoDB.
+- GET /api/prendas: Lista todas las prendas del usuario.
+- PUT /api/prendas/:id: Edita metadatos de una prenda.
+- DELETE /api/prendas/:id: Elimina prenda del inventario.
+
+--- GENERADOR DE LOOKS ---
+- POST /api/looks/generate: El motor principal. Envía a la IA:
+    * Inventario completo (Nombres exactos, categorías).
+    * Perfil biométrico (Colorimetría, Cuerpo, Género).
+    * Clima actual (Temperatura y estado).
+    * Ocasión (Casual, Oficina, etc.).
+  IA devuelve JSON con IDs de prendas, explicación técnica y scores de armonía.
+- POST /api/looks/save: Guarda un outfit generado en favoritos.
+- GET /api/looks/saved: Lista looks favoritos.
+
+--- HISTORIAL DE USO ---
+- POST /api/uso: Registra que un look o conjunto de prendas se usó en una fecha.
+  Actualiza el contadorUsos y ultimoUso en cada prenda.
+- GET /api/uso/estadisticas: Devuelve las 5 más usadas y las olvidadas.
+
+--- TIENDA IA ---
+- GET /api/tienda/productos: IA actúa como Personal Shopper. Busca productos 
+  externos que complementen específicamente las prendas que el usuario YA TIENE.
+
+4. FUNCIONAMIENTO DE LA INTELIGENCIA ARTIFICIAL
+--------------------------------------------------------------------------------
+El sistema utiliza prompts de ingeniería avanzada para Gemini 2.0:
+
+A. IA DE VISIÓN (Etiquetado): 
+   Se le envía la imagen sin fondo. Se le pide identificar no solo la categoría, 
+   sino el material (lino, denim) y un nombre técnico (ej: "Camisa Oxford").
+
+B. IA DE ESTILISMO (Generador):
+   Recibe un JSON con el perfil del usuario. 
+   - Si el usuario es "Triángulo Invertido", la IA prioriza volumen abajo.
+   - Si es "Invierno Brillante", evita tonos pasteles apagados.
+   - Cruza estos datos con el clima (ej: si llueve, evita zapatos de ante).
+
+C. IA DE BIOMETRÍA (Perfil):
+   Analiza selfies para determinar la estación de color (Teoría de las 12 
+   estaciones) y la forma de la cara. Permite edición manual del usuario.
+
+5. DISEÑO Y UX (FRONTEND)
+--------------------------------------------------------------------------------
+- Estética: "Luxury Dark Mode". Fondos negros (#000), superficies en gris 
+  oscuro y detalles en acento dorado/arena (#c8a97e).
+- Componentes Clave:
+  * Onboarding: Guía al usuario para definir su estilo inicial.
+  * Armario: Grid de tarjetas con las prendas limpias de fondo.
+  * Generador: Canvas interactivo con datos de clima en tiempo real 
+    (vía API Open-Meteo).
+  * Dashboard: Panel de control con gráficas de compatibilidad y uso real.
+
+6. SEGURIDAD Y PRIVACIDAD
+--------------------------------------------------------------------------------
+- Las fotos biométricas se manejan como strings Base64 (pueden migrarse a S3 
+  con cifrado AES-256).
+- Autenticación protegida por Middleware que valida el token JWT en cada 
+  petición sensible.
+- Las claves de API están aisladas en variables de entorno (.env).
