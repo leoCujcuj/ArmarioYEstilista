@@ -1,0 +1,352 @@
+.page {
+  padding: 30px;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 40px;
+  gap: 30px;
+}
+
+.pageTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.pageSubtitle {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+/* Widget Presupuesto Lujo - BARRA DORADA */
+.budgetLuxury {
+  background: linear-gradient(145deg, #111 0%, #000 100%);
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(200, 169, 126, 0.3);
+  min-width: 280px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.budgetHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.accentIcon { color: var(--accent); }
+
+.budgetLabel {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--muted);
+}
+
+.budgetMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.budgetValue {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.8rem;
+  color: #fff;
+}
+
+.budgetEditBtn {
+  background: rgba(255,255,255,0.05);
+  border: none;
+  color: var(--muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.budgetEditBtn:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+.luxuryProgress {
+  height: 5px;
+  background: #222;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.luxuryFill {
+  height: 100%;
+  background: linear-gradient(90deg, #c8a97e 0%, #ffdf91 50%, #c8a97e 100%);
+  box-shadow: 0 0 15px rgba(200, 169, 126, 0.6);
+  transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Filtros y Rango de Precio */
+.filterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.filterLuxury {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.filterBtn {
+  background: #000;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.3s;
+}
+
+.filterBtn.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+/* SLIDERS DORADOS */
+.priceControls {
+  display: flex;
+  gap: 30px;
+  padding: 15px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 15px;
+  border: 1px solid var(--border);
+}
+
+.priceGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.priceGroup label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.priceGroup input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: #222;
+  border-radius: 5px;
+  outline: none;
+}
+
+/* Chrome/Safari para el slider */
+.priceGroup input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  border: 2px solid #000;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(200, 169, 126, 0.5);
+  transition: all 0.2s;
+}
+
+.priceGroup input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #fff;
+}
+
+/* Store Grid */
+.storeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.luxuryCard {
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.luxuryCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+}
+
+.cardImage {
+  height: 320px;
+  background: #fff;
+}
+
+.cardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardBody {
+  padding: 20px;
+}
+
+.brandName {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.prodName {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: #fff;
+  margin: 8px 0 15px;
+}
+
+.prodPrice {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Modal Ajustado */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modalBody {
+  background: #0a0a0a;
+  width: 100%;
+  max-width: 800px;
+  max-height: 85vh;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow-y: auto;
+  position: relative;
+}
+
+.modalX {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 100;
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.modalImgWrap {
+  background: #fff;
+}
+
+.modalImgWrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modalContent {
+  padding: 40px;
+}
+
+.modalTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+  margin: 15px 0 5px;
+  color: #fff;
+}
+
+.iaInsight {
+  background: rgba(255,255,255,0.03);
+  padding: 15px;
+  border-radius: 12px;
+  border-left: 2px solid var(--accent);
+  margin-bottom: 30px;
+}
+
+.shopBtn {
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Loader */
+.loaderArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  color: var(--muted);
+}
+
+.spinningLoader {
+  color: var(--accent);
+  animation: rotate 2s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .modalGrid { grid-template-columns: 1fr; }
+  .header { flex-direction: column; align-items: flex-start; }
+}

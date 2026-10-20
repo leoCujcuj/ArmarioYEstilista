@@ -1,0 +1,231 @@
+.chatbotContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.chatButton {
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  background-color: var(--accent, #c8a97e);
+  color: #000;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, background-color 0.2s;
+  font-size: 24px;
+}
+
+.chatButton:hover {
+  transform: scale(1.05);
+  background-color: var(--accent2);
+}
+
+.chatWindow {
+  width: 350px;
+  height: 500px;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.chatHeader {
+  padding: 16px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatHeader h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.historyView {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+  overflow-y: auto;
+}
+
+.sessionItem {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sessionItem:hover {
+  background-color: var(--surface2);
+}
+
+.sessionInfo {
+  flex: 1;
+  overflow: hidden;
+}
+
+.sessionTitle {
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sessionDate {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.newChatBtn {
+  margin: 12px;
+  padding: 10px;
+  background-color: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.actionBtn:hover {
+  color: var(--accent);
+  background-color: var(--surface3);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.messagesContainer {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--bg);
+}
+
+.message {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.userMessage {
+  align-self: flex-end;
+  background-color: var(--accent);
+  color: #000;
+  border-bottom-right-radius: 2px;
+}
+
+.aiMessage {
+  align-self: flex-start;
+  background-color: var(--surface3);
+  color: var(--text);
+  border-bottom-left-radius: 2px;
+  border: 1px solid var(--border);
+}
+
+.inputArea {
+  padding: 12px;
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+}
+
+.inputArea input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 6px;
+  outline: none;
+  font-size: 14px;
+}
+
+.inputArea input:focus {
+  border-color: var(--accent);
+}
+
+.sendButton {
+  background-color: var(--accent);
+  color: #000;
+  border: none;
+  padding: 0 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.sendButton:hover {
+  opacity: 0.9;
+}
+
+.sendButton:disabled {
+  background-color: var(--muted2);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.loading {
+  font-size: 12px;
+  color: var(--muted);
+  font-style: italic;
+  margin-left: 4px;
+}

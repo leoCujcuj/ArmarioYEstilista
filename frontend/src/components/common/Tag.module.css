@@ -1,0 +1,38 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+}
+
+.tag-gold {
+  background: rgba(200, 169, 126, 0.15);
+  color: var(--accent2);
+  border: 0.5px solid rgba(200, 169, 126, 0.25);
+}
+
+.tag-muted {
+  background: var(--surface2);
+  color: var(--muted);
+  border: 0.5px solid var(--border);
+}
+
+.tag-success {
+  background: rgba(90, 158, 110, 0.15);
+  color: #7ec994;
+  border: 0.5px solid rgba(90, 158, 110, 0.2);
+}
+
+.tag-info {
+  background: rgba(74, 126, 181, 0.15);
+  color: #7ab2e8;
+  border: 0.5px solid rgba(74, 126, 181, 0.2);
+}
+
+.tag-danger {
+  background: rgba(192, 97, 74, 0.15);
+  color: #e88c78;
+  border: 0.5px solid rgba(192, 97, 74, 0.2);
+}

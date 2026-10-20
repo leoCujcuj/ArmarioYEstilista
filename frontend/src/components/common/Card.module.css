@@ -1,0 +1,14 @@
+.card {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.card-default {
+  box-shadow: none;
+}
+
+.card-elevated {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}

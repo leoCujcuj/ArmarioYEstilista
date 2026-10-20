@@ -1,0 +1,230 @@
+.page {
+  padding: 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.viewToggle {
+  display: flex;
+  background: var(--surface2);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleBtn.active {
+  background: var(--surface3);
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Grid Dinámico */
+.looksGrid {
+  display: grid;
+  gap: 30px;
+  transition: all 0.3s ease;
+}
+
+.looksGrid.detailed {
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+}
+
+.looksGrid.compact {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+/* Ajustes de Tarjeta Compacta */
+.compact .lookCard {
+  border-radius: 16px;
+}
+
+.compact .lookHeader {
+  padding: 12px 16px;
+}
+
+.compact .lookItems {
+  padding: 12px;
+  gap: 8px;
+}
+
+.compact .miniItem {
+  border-radius: 10px;
+}
+
+.compact .lookInfo {
+  padding: 16px;
+}
+
+.compact .lookDesc {
+  display: none; /* Ocultamos descripción en vista compacta */
+}
+
+.compact .lookTitle {
+  font-size: 0.9rem;
+}
+
+.pageTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.lookCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  overflow: hidden;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.lookCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent);
+}
+
+.lookHeader {
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(200, 169, 126, 0.05);
+}
+
+.lookBadge {
+  background: var(--accent);
+  color: black;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.deleteBtn {
+  background: rgba(192, 97, 74, 0.1);
+  color: #c0614a;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteBtn:hover {
+  background: #c0614a;
+  color: white;
+  transform: rotate(90deg);
+}
+
+.lookItems {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 20px;
+  background: var(--surface2);
+}
+
+.miniItem {
+  aspect-ratio: 1;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.miniItem img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 5px;
+}
+
+.lookInfo {
+  padding: 24px;
+}
+
+.lookDate {
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.lookDesc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 20px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.lookTags {
+  display: flex;
+  gap: 10px;
+}
+
+.tag {
+  font-size: 0.7rem;
+  color: var(--muted);
+  background: var(--surface3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 100px 20px;
+  color: var(--muted);
+}
+
+.empty h3 {
+  color: var(--text);
+  margin-bottom: 10px;
+}

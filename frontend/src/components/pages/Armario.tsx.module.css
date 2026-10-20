@@ -1,0 +1,185 @@
+.page {
+  padding: 32px;
+  height: 100%;
+  overflow-y: auto;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.pageSubtitle {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 10px 16px;
+  borderRadius: 12px;
+  margin-bottom: 20px;
+}
+
+.searchBar input {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  width: 100%;
+  outline: none;
+}
+
+.filterBar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.filterChip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.filterChip.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.closetGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.prendaCard {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.prendaCard:hover {
+  transform: translateY(-4px);
+}
+
+.prendaImg {
+  height: 220px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify_content: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.prendaActions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.prendaCard:hover .prendaActions {
+  opacity: 1;
+}
+
+.actionBtn {
+  background: var(--surface3);
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.actionBtn:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.prendaInfo {
+  padding: 12px;
+}
+
+.prendaName {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.prendaMeta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Modales */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s;
+}
+
+.modalContent {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 30px;
+  border-radius: 24px;
+  width: 100%;
+  maxWidth: 450px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 0.05em;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  margin-bottom: 5px;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
