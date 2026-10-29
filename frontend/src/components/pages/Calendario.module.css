@@ -1,0 +1,849 @@
+.page {
+  padding: 28px 32px 96px;
+  height: 100%;
+  overflow-y: auto;
+  animation: fadeIn 0.35s var(--ease-editorial);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.overline {
+  display: block;
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.pageTitle {
+  font-size: 2.25rem;
+  color: var(--text);
+  font-family: 'Cormorant Garamond', serif;
+}
+
+.pageSub {
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.tabSwitch {
+  display: flex;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  gap: 4px;
+}
+
+.tabSwitchBtn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.2s var(--ease-editorial);
+}
+
+.tabSwitchBtnActive {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* Franja KPI superior */
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.kpiCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.kpiCard:hover {
+  border-color: var(--border-accent);
+  transform: translateY(-2px);
+}
+
+.kpiLabel {
+  font-size: 0.67rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpiValue {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.55rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpiSub {
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+/* Layout Vista Calendario */
+.calendarWorkspace {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 22px;
+  align-items: start;
+}
+
+.calendarCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+}
+
+.monthNav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  gap: 10px;
+}
+
+.monthTitle {
+  font-size: 1.55rem;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.monthBtns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconNavBtn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease;
+}
+
+.iconNavBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.todayBtn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--accent2);
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.weekdaysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.weekdayLabel {
+  text-align: center;
+  font-size: 0.69rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 4px 0;
+}
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.dayCell {
+  min-height: 92px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.18s var(--ease-editorial);
+  position: relative;
+}
+
+.dayCell:hover {
+  border-color: var(--border2);
+  transform: translateY(-1px);
+}
+
+.dayCellMuted {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.dayCellToday {
+  border-color: rgba(200, 169, 126, 0.45);
+}
+
+.dayCellSelected {
+  border-color: var(--accent);
+  background: rgba(200, 169, 126, 0.1);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.dayCellPlanned {
+  border-style: dashed;
+}
+
+.dayTopRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dayNumber {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dotUsed {
+  background: var(--success);
+}
+
+.dotPlanned {
+  background: var(--accent);
+}
+
+.dayThumbs {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.miniGarment {
+  width: 28px;
+  height: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+  object-fit: contain;
+}
+
+.moreCount {
+  font-size: 0.64rem;
+  color: var(--accent2);
+  font-weight: 700;
+  padding-left: 2px;
+}
+
+/* Inspector lateral del día seleccionado */
+.dayInspector {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inspectorHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.inspectorDateTitle {
+  font-size: 1.4rem;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.entriesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.entryCard {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entryTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.badgeUsed {
+  background: rgba(94, 168, 116, 0.16);
+  color: #82ce98;
+  border: 1px solid rgba(94, 168, 116, 0.35);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.badgePlanned {
+  background: var(--accent-soft);
+  color: var(--accent2);
+  border: 1px dashed var(--accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.entryGarments {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.entryGarmentItem {
+  min-width: 66px;
+  max-width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.entryGarmentItem img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+
+.entryGarmentItem span {
+  font-size: 0.66rem;
+  color: var(--muted);
+  width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entryNotes {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.entryFooterActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.confirmUseBtn {
+  background: rgba(94, 168, 116, 0.16);
+  border: 1px solid rgba(94, 168, 116, 0.4);
+  color: #82ce98;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.deleteEntryBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--danger);
+  padding: 6px 9px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.72rem;
+}
+
+/* Panel Analítico de Estilo */
+.analyticsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.analyticCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.analyticCardWide {
+  grid-column: 1 / -1;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.sectionTitle {
+  font-size: 1.35rem;
+  color: var(--text);
+}
+
+.sectionSub {
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+/* Prenda más utilizada */
+.heroGarmentBox {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: var(--surface2);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.heroGarmentImg {
+  width: 96px;
+  height: 96px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.heroGarmentInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.heroWearCount {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.heroName {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.miniRankStrip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.miniRankCard {
+  min-width: 92px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.miniRankCard img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+.miniRankTitle {
+  font-size: 0.69rem;
+  color: var(--text);
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.miniRankCount {
+  font-size: 0.66rem;
+  color: var(--accent2);
+  font-weight: 700;
+}
+
+/* Combinaciones recurrentes */
+.comboList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.comboItem {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.comboPhotos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.comboPhotoBox {
+  width: 52px;
+  height: 52px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.comboPhotoBox img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.comboDetails {
+  flex: 1;
+  min-width: 140px;
+}
+
+.comboNames {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.comboMeta {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.comboFreqBadge {
+  background: var(--accent-soft);
+  border: 1px solid var(--border-accent);
+  color: var(--accent2);
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 700;
+}
+
+/* Barras de Categoría, Telas y Marcas */
+.barList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.barRow {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.barLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.barLabels span:last-child {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.barTrack {
+  width: 100%;
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 999px;
+  transition: width 0.6s var(--ease-editorial);
+}
+
+/* Análisis Cromático */
+.spectrumBar {
+  display: flex;
+  width: 100%;
+  height: 16px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+}
+
+.colorChipsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+  gap: 10px;
+}
+
+.colorMetricChip {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 9px 11px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.colorSwatchLg {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+/* Modal para registrar outfit directo en el día seleccionado */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 5, 8, 0.84);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2200;
+  padding: 16px;
+}
+
+.modalBox {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-xl);
+  padding: 26px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.savedLooksSelector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+  max-height: 270px;
+  overflow-y: auto;
+}
+
+.savedLookOption {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.savedLookOptionActive {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.savedLookThumbs {
+  display: flex;
+  gap: 4px;
+}
+
+.savedLookThumbs img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.wardrobePickerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.wardrobePickItem {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  cursor: pointer;
+  text-align: center;
+  position: relative;
+}
+
+.wardrobePickItemActive {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.wardrobePickItem img {
+  width: 100%;
+  height: 62px;
+  object-fit: contain;
+}
+
+.wardrobePickItem span {
+  display: block;
+  font-size: 0.67rem;
+  color: var(--text);
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 13px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: 0.86rem;
+}
+
+@media (max-width: 1080px) {
+  .kpiRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .calendarWorkspace {
+    grid-template-columns: 1fr;
+  }
+  .analyticsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .page {
+    padding: 20px 14px 96px;
+  }
+  .pageTitle {
+    font-size: 1.85rem;
+  }
+  .dayCell {
+    min-height: 68px;
+    padding: 5px;
+  }
+  .miniGarment {
+    width: 22px;
+    height: 22px;
+  }
+  .kpiRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .kpiValue {
+    font-size: 1.25rem;
+  }
+}

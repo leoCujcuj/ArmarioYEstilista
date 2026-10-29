@@ -179,3 +179,10 @@
   background: var(--surface2);
 }
 
+
+
+@media (max-width: 992px) {
+  .topbar {
+    padding-left: 62px;
+  }
+}

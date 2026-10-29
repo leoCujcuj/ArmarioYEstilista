@@ -229,3 +229,22 @@
   font-style: italic;
   margin-left: 4px;
 }
+
+
+@media (max-width: 768px) {
+  .chatbotContainer {
+    bottom: 76px;
+    right: 14px;
+    z-index: 1600;
+  }
+
+  .chatButton {
+    width: 48px;
+    height: 48px;
+  }
+
+  .chatWindow {
+    width: calc(100vw - 28px);
+    height: 65vh;
+  }
+}

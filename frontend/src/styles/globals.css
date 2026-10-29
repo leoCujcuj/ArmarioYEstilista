@@ -1,20 +1,50 @@
 :root {
-  --bg: #0a0a0a;
-  --surface: #111111;
-  --surface2: #181818;
-  --surface3: #222222;
-  --border: rgba(255,255,255,0.07);
-  --border2: rgba(255,255,255,0.12);
+  /* Paleta Contemporánea Editorial de Moda */
+  --bg: #09090b;
+  --background: #09090b;
+  --surface: #111114;
+  --surface2: #18181c;
+  --surface3: #222228;
+  --surface-elevated: rgba(24, 24, 28, 0.85);
+  --border: rgba(255, 255, 255, 0.08);
+  --border2: rgba(255, 255, 255, 0.14);
+  --border-accent: rgba(200, 169, 126, 0.34);
+
+  /* Acento Champagne / Dorado Sartorial */
   --accent: #c8a97e;
-  --accent2: #e8d5b0;
-  --text: #f0ece4;
-  --muted: #888880;
-  --muted2: #555550;
-  --danger: #c0614a;
-  --success: #5a9e6e;
-  --info: #4a7eb5;
-  --sidebar-w: 220px;
-  --topbar-h: 56px;
+  --accent2: #e6d3b3;
+  --accent-soft: rgba(200, 169, 126, 0.12);
+  --accent-glow: rgba(200, 169, 126, 0.22);
+
+  /* Jerarquía de Texto con Contraste Accesible */
+  --text: #f3efe8;
+  --muted: #9c988f;
+  --muted2: #66635b;
+
+  /* Estados Semánticos */
+  --danger: #c9644e;
+  --success: #5ea874;
+  --info: #5688bf;
+
+  /* Sistema de Espaciado y Geometría (Design Tokens) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  --sidebar-w: 244px;
+  --topbar-h: 58px;
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-card: 0 12px 32px rgba(0, 0, 0, 0.38);
+  --shadow-hover: 0 18px 42px rgba(0, 0, 0, 0.52);
 }
 
 * {
@@ -29,28 +59,39 @@ body {
   color: var(--text);
   height: 100vh;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html, body, #root {
   height: 100%;
 }
 
-/* ── Scrollbar ── */
+/* Scrollbar minimalista */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--surface3);
-  border-radius: 2px;
+  border-radius: 999px;
 }
 
-/* ── Typography ── */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted2);
+}
+
+/* Jerarquía Tipográfica Editorial */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 300;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
   letter-spacing: 0.01em;
+  line-height: 1.15;
 }
 
 button {
@@ -62,14 +103,45 @@ input, textarea, select {
   font-family: 'DM Sans', sans-serif;
 }
 
-/* ── Animations ── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Utilidades globales de animación y estados de carga */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.skeletonShimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface2) 25%,
+    var(--surface3) 50%,
+    var(--surface2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-md);
 }

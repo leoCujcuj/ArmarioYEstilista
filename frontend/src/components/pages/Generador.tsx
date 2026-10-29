@@ -1,17 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { RefreshCw, Heart, Sparkles, CloudRain, Sun, Calendar, Plus, MapPin, CheckCircle2, ThumbsUp, ThumbsDown, Edit3, Wand2, Check, Palette } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import {
+  RefreshCw,
+  Heart,
+  Sparkles,
+  CloudRain,
+  Sun,
+  Calendar,
+  Plus,
+  MapPin,
+  CheckCircle2,
+  ThumbsUp,
+  ThumbsDown,
+  Edit3,
+  Wand2,
+  Check,
+  Palette
+} from 'lucide-react';
 import { Button } from '../common/Button';
 import { Card } from '../common/Card';
 import { Tag } from '../common/Tag';
+import { AssignCalendarModal } from '../common/AssignCalendarModal';
+import {
+  PrendaItem,
+  OCASIONES_DISPONIBLES,
+  optimizarImagenUrl
+} from '../../types/armario';
 import styles from './Generador.module.css';
 
-const showToast = (msg: string, type?: any) => (window as any).showToast?.(msg, type);
+const showToast = (msg: string, type?: 'success' | 'error' | 'info') =>
+  (window as unknown as { showToast?: (m: string, t?: string) => void }).showToast?.(msg, type);
 
 export const Generador: React.FC = () => {
   const [ocasion, setOcasion] = useState('Casual');
   const [customOcasion, setCustomOcasion] = useState('');
   const [isCustomMode, setIsCustomMode] = useState(false);
-  const [outfit, setOutfit] = useState<any[]>([]);
+  const [outfit, setOutfit] = useState<PrendaItem[]>([]);
   const [explicacion, setExplicacion] = useState('');
   const [consejoColor, setConsejoColor] = useState('');
   const [origenLook, setOrigenLook] = useState<string>('ia');
@@ -24,17 +47,28 @@ export const Generador: React.FC = () => {
   const [showDislikeReasons, setShowDislikeReasons] = useState(false);
   const [instrucciones, setInstrucciones] = useState('');
 
-  // Estados para Modo Manual
+  // Estados para Modo Manual y Reglas de Colorimetría / Ocasión
   const [isManualMode, setIsManualMode] = useState(false);
-  const [todasPrendas, setTodasPrendas] = useState<any[]>([]);
+  const [soloOcasionCompatible, setSoloOcasionCompatible] = useState(false);
+  const [todasPrendas, setTodasPrendas] = useState<PrendaItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [sugerencia, setSugerencia] = useState<any>(null);
+  const [sugerencia, setSugerencia] = useState<{
+    id_original: string;
+    id_sugerida: string;
+    porque: string;
+    prendaDetalle: PrendaItem;
+  } | null>(null);
+
+  // Estado Modal Asignación directa al Calendario (Módulo D)
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
 
   const [weather, setWeather] = useState({ temp: '--', desc: 'Cargando...', icon: <Sun size={14} /> });
-  const [locationName, setLocationName] = useState(localStorage.getItem('weatherCity') || user?.direccion || 'Mi ubicación');
+  const [locationName, setLocationName] = useState(
+    localStorage.getItem('weatherCity') || user?.direccion || 'Mi ubicación'
+  );
   const [showLocInput, setShowLocInput] = useState(false);
   const [tempLoc, setTempLoc] = useState('');
 
@@ -46,12 +80,12 @@ export const Generador: React.FC = () => {
       const timer = setInterval(() => {
         if (index < words.length) {
           const currentWord = words[index];
-          setDisplayedExplicacion(prev => prev + (prev ? ' ' : '') + currentWord);
+          setDisplayedExplicacion((prev) => prev + (prev ? ' ' : '') + currentWord);
           index++;
         } else {
           clearInterval(timer);
         }
-      }, 28);
+      }, 24);
       return () => clearInterval(timer);
     }
   }, [explicacion]);
@@ -64,7 +98,7 @@ export const Generador: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
+        const data: PrendaItem[] = await res.json();
         setTodasPrendas(data);
       }
     } catch (e) {
@@ -75,7 +109,9 @@ export const Generador: React.FC = () => {
   const fetchWeather = async (customCity?: string): Promise<string> => {
     const getW = async (latitude: number, longitude: number, cityName?: string): Promise<string> => {
       try {
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+        const res = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
+        );
         const data = await res.json();
         const temp = Math.round(data.current_weather.temperature);
         const code = data.current_weather.weathercode;
@@ -98,13 +134,17 @@ export const Generador: React.FC = () => {
     const cityToSearch = customCity || localStorage.getItem('weatherCity') || user?.direccion;
     if (cityToSearch && cityToSearch !== 'Mi ubicación') {
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityToSearch)}&limit=1`);
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityToSearch)}&limit=1`
+        );
         const data = await res.json();
         if (data && data.length > 0) {
           const shortName = data[0].display_name.split(',')[0];
           return await getW(parseFloat(data[0].lat), parseFloat(data[0].lon), shortName);
         }
-      } catch (e) {}
+      } catch (e) {
+        // continúa a geolocalización por defecto
+      }
     }
 
     return new Promise((resolve) => {
@@ -131,7 +171,8 @@ export const Generador: React.FC = () => {
   };
 
   const generateLook = async (ocasionIn?: string, force = false, overrideClima?: string) => {
-    const climaContexto = overrideClima || (weather.temp === '--' ? '20°C, Despejado' : `${weather.temp}, ${weather.desc}`);
+    const climaContexto =
+      overrideClima || (weather.temp === '--' ? '20°C, Despejado' : `${weather.temp}, ${weather.desc}`);
     setLoading(true);
     setFeedbackGiven(null);
     setShowDislikeReasons(false);
@@ -158,7 +199,7 @@ export const Generador: React.FC = () => {
         setConsejoColor(data.consejo_color || '');
         setOrigenLook(data.origen || 'ia');
         setScore(data.score || { color: 85, balance: 88 });
-        setSelectedIds((data.outfit || []).map((p: any) => p._id));
+        setSelectedIds((data.outfit || []).map((p: PrendaItem) => p._id));
       } else {
         showToast(data.error || 'No se pudo generar el look', 'info');
       }
@@ -167,6 +208,51 @@ export const Generador: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Motor algorítmico instantáneo en cliente basado en reglas de colorimetría + ocasión del armario:
+   * Permite preseleccionar automáticamente piezas armónicas en el constructor manual.
+   */
+  const autocompletarPorReglasArmario = () => {
+    if (todasPrendas.length === 0) {
+      showToast('Añade prendas a tu armario primero', 'info');
+      return;
+    }
+    const occActiva = (isCustomMode && customOcasion ? customOcasion : ocasion).toLowerCase();
+    const subtonoUser = (user?.biometria?.subtono || 'Neutro').toLowerCase();
+
+    const puntuar = (p: PrendaItem) => {
+      let scoreLocal = 0;
+      const occs = (p.ocasiones || []).map((o) => o.toLowerCase());
+      if (occs.includes(occActiva)) scoreLocal += 4;
+      const subP = (p.subtono || 'Neutro').toLowerCase();
+      if (subP === subtonoUser || subP === 'neutro' || subtonoUser === 'neutro') scoreLocal += 3;
+      if ((p.contadorUsos || 0) === 0) scoreLocal += 1.5;
+      return scoreLocal + Math.random() * 0.8;
+    };
+
+    const elegirDeCat = (cat: string) => {
+      const candidatas = todasPrendas.filter((p) => p.categoria === cat);
+      if (candidatas.length === 0) return null;
+      return [...candidatas].sort((a, b) => puntuar(b) - puntuar(a))[0];
+    };
+
+    const sugeridas = [
+      elegirDeCat('Top'),
+      elegirDeCat('Bottom'),
+      elegirDeCat('Shoes'),
+      occActiva === 'oficina' || occActiva === 'evento' ? elegirDeCat('Outerwear') : null
+    ].filter((x): x is PrendaItem => Boolean(x));
+
+    const seleccion = sugeridas.length > 0 ? sugeridas : todasPrendas.slice(0, 3);
+    setSelectedIds(seleccion.map((p) => p._id));
+    setOutfit(seleccion);
+    setExplicacion(
+      `Combinación estructurada según tus prendas etiquetadas para ${isCustomMode ? customOcasion : ocasion} y afinidad con subtono ${user?.biometria?.subtono || 'Neutro'}.`
+    );
+    setConsejoColor('Equilibrio cromático calculado entre paleta primaria y estación registrada.');
+    setScore({ color: 90, balance: 89 });
   };
 
   const analyzeManualLook = async () => {
@@ -194,7 +280,7 @@ export const Generador: React.FC = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        const outfitSeleccionado = todasPrendas.filter(p => selectedIds.includes(p._id));
+        const outfitSeleccionado = todasPrendas.filter((p) => selectedIds.includes(p._id));
         setOutfit(outfitSeleccionado);
         setExplicacion(data.feedback || '');
         setConsejoColor(data.consejo_color || '');
@@ -208,8 +294,15 @@ export const Generador: React.FC = () => {
     }
   };
 
+  const prendasActivasParaGuardar = useMemo(() => {
+    if (isManualMode) {
+      return todasPrendas.filter((p) => selectedIds.includes(p._id));
+    }
+    return outfit;
+  }, [isManualMode, todasPrendas, selectedIds, outfit]);
+
   const handleSaveFavorite = async () => {
-    const idsToSave = isManualMode ? selectedIds : outfit.map(p => p._id);
+    const idsToSave = prendasActivasParaGuardar.map((p) => p._id);
     if (idsToSave.length === 0) {
       showToast('No hay prendas en el look para guardar', 'info');
       return;
@@ -243,8 +336,8 @@ export const Generador: React.FC = () => {
     }
   };
 
-  const handlePlanUse = async () => {
-    const idsToUse = isManualMode ? selectedIds : outfit.map(p => p._id);
+  const handleUseTodayQuick = async () => {
+    const idsToUse = prendasActivasParaGuardar.map((p) => p._id);
     if (idsToUse.length === 0) {
       showToast('Selecciona o genera un look primero', 'info');
       return;
@@ -252,18 +345,22 @@ export const Generador: React.FC = () => {
     setRegisteringUse(true);
     const token = localStorage.getItem('token');
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const finalOcasion = isCustomMode && customOcasion ? customOcasion : ocasion;
+    const climaStr = weather.temp === '--' ? '' : `${weather.temp} ${weather.desc}`;
 
     try {
-      const res = await fetch(`${API_URL}/api/uso`, {
+      const res = await fetch(`${API_URL}/api/calendario`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           prendasIds: idsToUse,
-          fecha: new Date()
+          ocasion: finalOcasion,
+          clima: climaStr,
+          estado: 'usado'
         })
       });
       if (res.ok) {
-        showToast('Uso registrado hoy. Estadísticas de rotación actualizadas.', 'success');
+        showToast('Registrado hoy en el Calendario OOTD. Analítica actualizada.', 'success');
         fetchPrendas();
       } else {
         showToast('No se pudo registrar el uso', 'error');
@@ -276,7 +373,7 @@ export const Generador: React.FC = () => {
   };
 
   const handleFeedback = async (type: 'like' | 'dislike', motivo?: string) => {
-    const ids = outfit.map(p => p._id);
+    const ids = outfit.map((p) => p._id);
     if (ids.length === 0) return;
 
     const token = localStorage.getItem('token');
@@ -301,9 +398,9 @@ export const Generador: React.FC = () => {
         setFeedbackGiven(type);
         setShowDislikeReasons(false);
         if (type === 'like') {
-          showToast('Preferencia guardada. Este look también servirá de respaldo inteligente.', 'success');
+          showToast('Preferencia guardada. Añadido como referencia verificada.', 'success');
         } else {
-          showToast(`Preferencia de ${motivo || 'estilo'} actualizada. Generando nueva propuesta...`, 'info');
+          showToast(`Ajustando ${motivo || 'estilo'}. Generando nueva combinación...`, 'info');
           generateLook(finalOcasion, true);
         }
       }
@@ -313,27 +410,29 @@ export const Generador: React.FC = () => {
   };
 
   const togglePrenda = (id: string) => {
-    setSelectedIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id];
+      setOutfit(todasPrendas.filter((p) => next.includes(p._id)));
+      return next;
+    });
   };
 
   const applySuggestion = () => {
     if (!sugerencia) return;
     const { id_original, id_sugerida, prendaDetalle } = sugerencia;
 
-    setSelectedIds(prev => {
-      const filtered = prev.filter(id => id !== id_original);
+    setSelectedIds((prev) => {
+      const filtered = prev.filter((id) => id !== id_original);
       return [...filtered, id_sugerida];
     });
 
-    setOutfit(prev => {
-      const filtered = prev.filter(p => p._id !== id_original);
+    setOutfit((prev) => {
+      const filtered = prev.filter((p) => p._id !== id_original);
       return [...filtered, prendaDetalle];
     });
 
     setSugerencia(null);
-    showToast('Cambio de prenda aplicado con éxito', 'success');
+    showToast('Reemplazo aplicado al conjunto', 'success');
   };
 
   useEffect(() => {
@@ -351,12 +450,20 @@ export const Generador: React.FC = () => {
     if (!isManualMode) generateLook(newOcc, true);
   };
 
-  const ocasiones = ['Casual', 'Oficina', 'Evento', 'Noche'];
+  const ocasionEfectiva = isCustomMode && customOcasion ? customOcasion : ocasion;
+
+  const prendasSelectorManual = useMemo(() => {
+    if (!soloOcasionCompatible) return todasPrendas;
+    return todasPrendas.filter((p) => (p.ocasiones || []).includes(ocasionEfectiva));
+  }, [todasPrendas, soloOcasionCompatible, ocasionEfectiva]);
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageTitle}>Estilista Personal IA</div>
-      <div className={styles.pageSubtitle}>Combinaciones inteligentes basadas en tu morfología, colorimetría y clima local</div>
+      <span className={styles.overline}>Motor de Combinaciones Sartoriales</span>
+      <h1 className={styles.pageTitle}>Estilista Personal & Outfits</h1>
+      <div className={styles.pageSubtitle}>
+        Generación armónica cruzando tu colorimetría ({user?.biometria?.colorimetria || 'Estación activa'}), ocasiones del armario y clima local
+      </div>
 
       <div className={styles.generatorWrap}>
         <div className={styles.genCanvas}>
@@ -365,23 +472,23 @@ export const Generador: React.FC = () => {
               className={`${styles.modeBtn} ${!isManualMode ? styles.active : ''}`}
               onClick={() => setIsManualMode(false)}
             >
-              <Wand2 size={16} /> Generación Automática
+              <Wand2 size={16} /> Motor IA Automático
             </button>
             <button
               className={`${styles.modeBtn} ${isManualMode ? styles.active : ''}`}
               onClick={() => setIsManualMode(true)}
             >
-              <Edit3 size={16} /> Creación Manual
+              <Edit3 size={16} /> Laboratorio de Combinación
             </button>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
             <div>
               <div className={styles.genCanvasTitle}>
-                {isManualMode ? 'Tu Combinación' : 'Propuesta del Día'}
+                {isManualMode ? 'Mesa de Estilismo' : 'Propuesta Armónica'}
               </div>
-              <div className={styles.genCanvasSub} style={{ marginBottom: '20px' }}>
-                {user?.biometria?.genero || 'Estilo'} · {isCustomMode ? customOcasion || 'Personalizado' : ocasion}
+              <div className={styles.genCanvasSub}>
+                {user?.biometria?.genero || 'Colección'} · Ocasión: {ocasionEfectiva}
               </div>
             </div>
             {!isManualMode && origenLook === 'favorito_respaldo' && (
@@ -390,92 +497,129 @@ export const Generador: React.FC = () => {
           </div>
 
           {loading ? (
-            <div style={{ height: '380px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '20px', color: 'var(--muted)' }}>
-              <RefreshCw size={44} className="spin" style={{ animation: 'spin 2s linear infinite', color: 'var(--accent)' }} />
-              <p>{isManualMode ? 'Analizando proporciones y armonía cromática...' : 'Evaluando tu armario, biometría y clima actual...'}</p>
+            <div style={{ height: '340px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '18px', color: 'var(--muted)' }}>
+              <RefreshCw size={38} className="spin" style={{ color: 'var(--accent)' }} />
+              <p style={{ fontSize: '0.9rem' }}>
+                {isManualMode
+                  ? 'Evaluando proporciones morfológicas y paleta cromática...'
+                  : 'Cruzando ocasiones de tus prendas, subtono estacional y clima...'}
+              </p>
             </div>
           ) : (
             <>
               {isManualMode && (
-                <div className={styles.manualSelector}>
-                  {todasPrendas.map(prenda => (
-                    <div
-                      key={prenda._id}
-                      className={`${styles.selectableItem} ${selectedIds.includes(prenda._id) ? styles.selected : ''}`}
-                      onClick={() => togglePrenda(prenda._id)}
-                      title={`${prenda.nombre} (${prenda.color_principal || prenda.categoria})`}
+                <div>
+                  <div className={styles.manualHeaderBar}>
+                    <button
+                      type="button"
+                      className={`${styles.filterOccToggle} ${soloOcasionCompatible ? styles.filterOccToggleActive : ''}`}
+                      onClick={() => setSoloOcasionCompatible(!soloOcasionCompatible)}
                     >
-                      <img src={prenda.url_imagen_limpia} alt={prenda.nombre} />
-                      {selectedIds.includes(prenda._id) && (
-                        <div className={styles.checkBadge}><Check size={12} strokeWidth={3} /></div>
-                      )}
-                    </div>
-                  ))}
+                      Filtrar prendas para {ocasionEfectiva} ({todasPrendas.filter((p) => (p.ocasiones || []).includes(ocasionEfectiva)).length})
+                    </button>
+
+                    <button
+                      type="button"
+                      className={styles.filterOccToggle}
+                      style={{ color: 'var(--accent2)', borderColor: 'var(--border-accent)' }}
+                      onClick={autocompletarPorReglasArmario}
+                    >
+                      Auto-armar por Colorimetría
+                    </button>
+                  </div>
+
+                  <div className={styles.manualSelector}>
+                    {prendasSelectorManual.map((prenda) => {
+                      const matchesOcc = (prenda.ocasiones || []).includes(ocasionEfectiva);
+                      return (
+                        <div
+                          key={prenda._id}
+                          className={`${styles.selectableItem} ${selectedIds.includes(prenda._id) ? styles.selected : ''}`}
+                          onClick={() => togglePrenda(prenda._id)}
+                          title={`${prenda.nombre} · ${prenda.marca || 'Sin marca'}`}
+                        >
+                          {matchesOcc && <span className={styles.matchDot} title={`Ideal para ${ocasionEfectiva}`} />}
+                          <img src={optimizarImagenUrl(prenda.url_imagen_limpia, 180)} alt={prenda.nombre} />
+                          <span className={styles.selectableName}>{prenda.nombre}</span>
+                          {selectedIds.includes(prenda._id) && (
+                            <div className={styles.checkBadge}>
+                              <Check size={11} strokeWidth={3} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
               <div className={styles.genOutfitDisplay}>
-                {outfit.length > 0 ? outfit.map((prenda) => (
-                  <div key={prenda._id} className={styles.genItem}>
-                    <div className={styles.genItemImg}>
-                      <img
-                        src={prenda.url_imagen_limpia?.includes('/upload/')
-                          ? prenda.url_imagen_limpia.replace('/upload/', '/upload/w_400,q_auto,f_auto/')
-                          : prenda.url_imagen_limpia}
-                        alt={prenda.nombre}
-                      />
+                {prendasActivasParaGuardar.length > 0 ? (
+                  prendasActivasParaGuardar.map((prenda) => (
+                    <div key={prenda._id} className={styles.genItem}>
+                      <div className={styles.genItemImg}>
+                        {prenda.color_hex && (
+                          <span className={styles.itemSwatch} style={{ background: prenda.color_hex }} />
+                        )}
+                        <img
+                          src={optimizarImagenUrl(prenda.url_imagen_limpia, 400)}
+                          alt={prenda.nombre}
+                        />
+                      </div>
+                      {prenda.marca && prenda.marca !== 'Sin marca' && (
+                        <span className={styles.itemBrand}>{prenda.marca}</span>
+                      )}
+                      <span style={{ textAlign: 'center', color: 'var(--text)', fontWeight: 600, fontSize: '0.86rem' }}>
+                        {prenda.nombre}
+                      </span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
+                        {[prenda.color_principal, prenda.material || prenda.categoria].filter(Boolean).join(' · ')}
+                      </span>
                     </div>
-                    <span style={{ textAlign: 'center', color: 'var(--text)', fontWeight: 600 }}>{prenda.nombre}</span>
-                    <span style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '-8px' }}>
-                      {prenda.color_principal && prenda.color_principal !== 'No especificado' ? `${prenda.color_principal} · ` : ''}{prenda.corte_silueta || prenda.categoria}
-                    </span>
-                  </div>
-                )) : !isManualMode && (
-                  <div style={{ gridColumn: '1/-1', padding: '60px', textAlign: 'center', color: 'var(--muted)' }}>
-                    Aún no tenemos suficientes prendas para crear una combinación. Añade prendas en Mi Armario.
+                  ))
+                ) : (
+                  <div style={{ gridColumn: '1/-1', padding: '52px 20px', textAlign: 'center', color: 'var(--muted)' }}>
+                    {todasPrendas.length === 0
+                      ? 'Añade tus primeras prendas en Mi Armario (o usa el Catálogo de Básicos) para activar el motor de outfits.'
+                      : 'Selecciona prendas arriba o pulsa Auto-armar por Colorimetría.'}
                   </div>
                 )}
               </div>
 
               {displayedExplicacion && (
                 <div className={styles.genExplanation}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '15px' }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--accent)', fontWeight: 700, fontSize: '0.8rem', textTransform: 'uppercase' }}>
-                        <Sparkles size={16} color="var(--accent)" /> Justificación Morfológica y de Estilo
-                      </div>
-                      <p style={{ margin: 0 }}>{displayedExplicacion}</p>
-
-                      {consejoColor && (
-                        <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(200, 169, 126, 0.15)', fontSize: '0.85rem', color: 'var(--muted)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
-                          <Palette size={15} color="var(--accent)" style={{ flexShrink: 0, marginTop: '3px' }} />
-                          <span><strong style={{ color: 'var(--text)' }}>Armonía de Color:</strong> {consejoColor}</span>
-                        </div>
-                      )}
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--accent)', fontWeight: 700, fontSize: '0.76rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    <Sparkles size={15} color="var(--accent)" /> Justificación Morfológica y de Estilo
                   </div>
+                  <p style={{ margin: 0 }}>{displayedExplicacion}</p>
 
-                  {/* FEEDBACK LOOP INTERACTIVO */}
-                  {outfit.length > 0 && (
-                    <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {consejoColor && (
+                    <div style={{ marginTop: '12px', paddingTop: '11px', borderTop: '1px solid rgba(200, 169, 126, 0.16)', fontSize: '0.84rem', color: 'var(--muted)', display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <Palette size={15} color="var(--accent)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                      <span><strong style={{ color: 'var(--text)' }}>Armonía de Color:</strong> {consejoColor}</span>
+                    </div>
+                  )}
+
+                  {prendasActivasParaGuardar.length > 0 && (
+                    <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-                        <span style={{ fontSize: '0.78rem', color: 'var(--muted)' }}>
+                        <span style={{ fontSize: '0.76rem', color: 'var(--muted)' }}>
                           {feedbackGiven === 'like'
-                            ? 'Has indicado que te gusta esta propuesta.'
-                            : '¿Qué te parece esta propuesta para tu estilo?'}
+                            ? 'Propuesta validada en tu perfil de estilo.'
+                            : '¿Cómo calificarías esta combinación?'}
                         </span>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <button
+                            type="button"
                             onClick={() => handleFeedback('like')}
                             disabled={feedbackGiven === 'like'}
                             style={{
-                              background: feedbackGiven === 'like' ? 'rgba(90, 158, 110, 0.25)' : 'var(--surface2)',
-                              border: '1px solid rgba(90, 158, 110, 0.4)',
-                              color: '#7ec994',
+                              background: feedbackGiven === 'like' ? 'rgba(94, 168, 116, 0.25)' : 'var(--surface2)',
+                              border: '1px solid rgba(94, 168, 116, 0.4)',
+                              color: '#82ce98',
                               padding: '6px 12px',
                               borderRadius: '8px',
-                              fontSize: '0.78rem',
-                              cursor: 'pointer',
+                              fontSize: '0.76rem',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '6px'
@@ -484,15 +628,15 @@ export const Generador: React.FC = () => {
                             <ThumbsUp size={13} /> Me gusta
                           </button>
                           <button
+                            type="button"
                             onClick={() => setShowDislikeReasons(!showDislikeReasons)}
                             style={{
-                              background: showDislikeReasons ? 'rgba(192, 97, 74, 0.25)' : 'var(--surface2)',
-                              border: '1px solid rgba(192, 97, 74, 0.4)',
-                              color: '#e88c78',
+                              background: showDislikeReasons ? 'rgba(201, 100, 78, 0.25)' : 'var(--surface2)',
+                              border: '1px solid rgba(201, 100, 78, 0.4)',
+                              color: '#eb9481',
                               padding: '6px 12px',
                               borderRadius: '8px',
-                              fontSize: '0.78rem',
-                              cursor: 'pointer',
+                              fontSize: '0.76rem',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '6px'
@@ -505,7 +649,7 @@ export const Generador: React.FC = () => {
 
                       {showDislikeReasons && (
                         <div style={{ background: 'var(--surface2)', padding: '12px', borderRadius: '10px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                          <span style={{ fontSize: '0.78rem', color: 'var(--text)' }}>¿Qué prefieres cambiar para afinar el motor IA?</span>
+                          <span style={{ fontSize: '0.76rem', color: 'var(--text)' }}>¿Qué deseas corregir?</span>
                           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                             <Button size="sm" variant="outline" onClick={() => handleFeedback('dislike', 'corte')}>Corte / Silueta</Button>
                             <Button size="sm" variant="outline" onClick={() => handleFeedback('dislike', 'color')}>Colorimetría</Button>
@@ -522,15 +666,16 @@ export const Generador: React.FC = () => {
                         <img src={sugerencia.prendaDetalle?.url_imagen_limpia} alt="Sugerencia" />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.8rem', marginBottom: '4px', textTransform: 'uppercase' }}>
-                          Sugerencia de Mejora: {sugerencia.prendaDetalle?.nombre}
+                        <div style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.76rem', marginBottom: '4px', textTransform: 'uppercase' }}>
+                          Cambio recomendado: {sugerencia.prendaDetalle?.nombre}
                         </div>
-                        <p style={{ fontSize: '0.85rem', margin: 0, color: 'var(--text)' }}>{sugerencia.porque}</p>
+                        <p style={{ fontSize: '0.83rem', margin: 0, color: 'var(--text)' }}>{sugerencia.porque}</p>
                         <button
+                          type="button"
                           onClick={applySuggestion}
-                          style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, marginTop: '8px', padding: 0, display: 'flex', alignItems: 'center', gap: '5px' }}
+                          style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.78rem', fontWeight: 600, marginTop: '8px', padding: 0, display: 'flex', alignItems: 'center', gap: '5px' }}
                         >
-                          <CheckCircle2 size={14} /> Aplicar cambio
+                          <CheckCircle2 size={14} /> Aplicar reemplazo
                         </button>
                       </div>
                     </div>
@@ -538,32 +683,44 @@ export const Generador: React.FC = () => {
                 </div>
               )}
 
-              <div className={styles.genActions} style={{ flexWrap: 'wrap' }}>
+              <div className={styles.genActions}>
                 {isManualMode && (
-                  <Button icon={<Sparkles size={16} />} onClick={analyzeManualLook} variant="primary">
-                    Analizar Combinación
+                  <Button icon={<Sparkles size={15} />} onClick={analyzeManualLook} variant="primary">
+                    Evaluar con IA
                   </Button>
                 )}
+
                 <Button
-                  icon={<Calendar size={16} />}
-                  onClick={handlePlanUse}
-                  disabled={registeringUse || outfit.length === 0}
+                  icon={<Calendar size={15} />}
+                  onClick={() => setShowCalendarModal(true)}
+                  disabled={prendasActivasParaGuardar.length === 0}
                   variant="primary"
-                  style={{ backgroundColor: 'var(--success)', color: 'white' }}
+                >
+                  Asignar a Calendario
+                </Button>
+
+                <Button
+                  icon={<CheckCircle2 size={15} />}
+                  onClick={handleUseTodayQuick}
+                  disabled={registeringUse || prendasActivasParaGuardar.length === 0}
+                  variant="outline"
+                  style={{ borderColor: 'rgba(94, 168, 116, 0.5)', color: '#82ce98' }}
                 >
                   {registeringUse ? 'Registrando...' : 'Usar hoy'}
                 </Button>
+
                 <Button
-                  icon={<Heart size={16} />}
+                  icon={<Heart size={15} />}
                   onClick={handleSaveFavorite}
-                  disabled={savingLook || outfit.length === 0}
+                  disabled={savingLook || prendasActivasParaGuardar.length === 0}
                   variant="outline"
                 >
                   {savingLook ? 'Guardando...' : 'Guardar favorito'}
                 </Button>
+
                 {!isManualMode && (
-                  <Button variant="ghost" icon={<RefreshCw size={16} />} onClick={() => generateLook(undefined, true)}>
-                    Generar otro
+                  <Button variant="ghost" icon={<RefreshCw size={15} />} onClick={() => generateLook(undefined, true)}>
+                    Otra combinación
                   </Button>
                 )}
               </div>
@@ -573,11 +730,12 @@ export const Generador: React.FC = () => {
 
         <div className={styles.genPanel}>
           <Card className={styles.genSection}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-              <div className={styles.genSectionTitle} style={{ marginBottom: 0 }}>Contexto Actual</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div className={styles.genSectionTitle} style={{ marginBottom: 0 }}>Contexto Ambiental</div>
               <button
+                type="button"
                 onClick={() => { setTempLoc(locationName); setShowLocInput(!showLocInput); }}
-                style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.72rem', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--accent)', fontSize: '0.72rem' }}
               >
                 {showLocInput ? 'Cancelar' : 'Cambiar ciudad'}
               </button>
@@ -590,32 +748,33 @@ export const Generador: React.FC = () => {
                   style={{ padding: '8px 10px', fontSize: '0.8rem' }}
                   placeholder="Ciudad, País"
                   value={tempLoc}
-                  onChange={e => setTempLoc(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSaveLocation()}
+                  onChange={(e) => setTempLoc(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveLocation()}
                 />
                 <Button size="sm" onClick={handleSaveLocation}><Check size={14} /></Button>
               </div>
             )}
 
-            <div className={styles.contextItem} style={{ marginBottom: '15px', color: 'var(--accent)' }}>
-              <span className={styles.contextLabel} style={{ color: 'var(--accent)' }}><MapPin size={12} /> Ubicación</span>
+            <div className={styles.contextItem}>
+              <span className={styles.contextLabel} style={{ color: 'var(--accent)' }}><MapPin size={13} /> Ubicación</span>
               <span className={styles.contextValue}>{locationName}</span>
             </div>
             <div className={styles.contextItem}>
               <span className={styles.contextLabel}>{weather.icon} Clima</span>
               <span className={styles.contextValue}>{weather.temp} {weather.desc}</span>
             </div>
-            <div className={styles.contextItem}>
-              <span className={styles.contextLabel}><Calendar size={14} /> Fecha</span>
-              <span className={styles.contextValue}>{new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+            <div className={styles.contextItem} style={{ marginBottom: 0 }}>
+              <span className={styles.contextLabel}><Palette size={13} /> Subtono</span>
+              <span className={styles.contextValue}>{user?.biometria?.subtono || 'Neutro'}</span>
             </div>
           </Card>
 
           <Card className={styles.genSection}>
-            <div className={styles.genSectionTitle}>Ocasión</div>
+            <div className={styles.genSectionTitle}>Ocasión de Uso</div>
             <div className={styles.occasionGrid}>
-              {ocasiones.map((o) => (
+              {OCASIONES_DISPONIBLES.map((o) => (
                 <button
+                  type="button"
                   key={o}
                   className={`${styles.occBtn} ${!isCustomMode && ocasion === o ? styles.active : ''}`}
                   onClick={() => handleOccasionChange(o)}
@@ -624,17 +783,19 @@ export const Generador: React.FC = () => {
                 </button>
               ))}
               <button
+                type="button"
                 className={`${styles.occBtn} ${isCustomMode ? styles.active : ''}`}
+                style={{ gridColumn: '1 / -1' }}
                 onClick={() => setIsCustomMode(true)}
               >
-                <Plus size={14} /> Otro
+                <Plus size={13} /> Ocasión personalizada
               </button>
             </div>
             {isCustomMode && (
-              <div style={{ marginTop: '15px', display: 'flex', gap: '8px' }}>
+              <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
                 <input
                   className={styles.input}
-                  placeholder="Ej: Cena de negocios, Boda..."
+                  placeholder="Ej: Boda de día, Entrevista..."
                   value={customOcasion}
                   onChange={(e) => setCustomOcasion(e.target.value)}
                 />
@@ -647,11 +808,11 @@ export const Generador: React.FC = () => {
 
           {!isManualMode && (
             <Card className={styles.genSection}>
-              <div className={styles.genSectionTitle}>Instrucciones Especiales</div>
+              <div className={styles.genSectionTitle}>Directriz Particular</div>
               <textarea
                 className={styles.input}
-                style={{ height: '80px', paddingTop: '10px', resize: 'none', fontSize: '0.85rem' }}
-                placeholder="Ej: Mi camisa blanca está lavándose, evita tonos oscuros..."
+                style={{ height: '74px', resize: 'none', fontSize: '0.84rem' }}
+                placeholder="Ej: Prioriza tonos tierra, evita calzado blanco..."
                 value={instrucciones}
                 onChange={(e) => setInstrucciones(e.target.value)}
               />
@@ -661,7 +822,7 @@ export const Generador: React.FC = () => {
                 icon={<Sparkles size={14} />}
                 onClick={() => generateLook(undefined, true)}
                 disabled={loading}
-                style={{ width: '100%', marginTop: '10px', fontSize: '0.8rem' }}
+                style={{ width: '100%', marginTop: '10px' }}
               >
                 Aplicar y Regenerar
               </Button>
@@ -669,30 +830,40 @@ export const Generador: React.FC = () => {
           )}
 
           <Card className={styles.genSection}>
-            <div className={styles.genSectionTitle}>Análisis de Armonía</div>
+            <div className={styles.genSectionTitle}>Índice de Armonía</div>
             <div className={styles.aiScore}>
-              <div style={{ width: '100%' }}>
+              <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.75rem' }}>
-                  <span>Colorimetría</span>
-                  <span>{score?.color || 0}%</span>
+                  <span>Colorimetría Estacional</span>
+                  <strong>{score?.color || 0}%</strong>
                 </div>
                 <div className={styles.aiScoreBar}>
-                  <div className={styles.aiScoreFill} style={{ width: `${score?.color || 0}%` }}></div>
+                  <div className={styles.aiScoreFill} style={{ width: `${score?.color || 0}%` }} />
                 </div>
               </div>
-              <div style={{ width: '100%', marginTop: '15px' }}>
+              <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '0.75rem' }}>
-                  <span>Equilibrio Morfológico</span>
-                  <span>{score?.balance || 0}%</span>
+                  <span>Balance Morfológico</span>
+                  <strong>{score?.balance || 0}%</strong>
                 </div>
                 <div className={styles.aiScoreBar}>
-                  <div className={styles.aiScoreFill} style={{ width: `${score?.balance || 0}%`, backgroundColor: 'var(--info)' }}></div>
+                  <div className={styles.aiScoreFill} style={{ width: `${score?.balance || 0}%`, backgroundColor: 'var(--info)' }} />
                 </div>
               </div>
             </div>
           </Card>
         </div>
       </div>
+
+      {/* Modal reutilizable para agendar directamente el outfit generado en cualquier fecha */}
+      <AssignCalendarModal
+        isOpen={showCalendarModal}
+        onClose={() => setShowCalendarModal(false)}
+        prendas={prendasActivasParaGuardar}
+        defaultOcasion={ocasionEfectiva}
+        defaultClima={weather.temp === '--' ? '' : `${weather.temp} ${weather.desc}`}
+        onAssigned={() => fetchPrendas()}
+      />
     </div>
   );
 };

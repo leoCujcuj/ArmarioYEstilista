@@ -12,6 +12,7 @@ export { default as Onboarding } from './onboarding/Onboarding';
 export { Dashboard } from './pages/Dashboard';
 export { Armario } from './pages/Armario';
 export { Generador } from './pages/Generador';
+export { Calendario } from './pages/Calendario';
 export { Tienda } from './pages/Tienda';
 export { Favoritos } from './pages/Favoritos';
 export { Perfil } from './pages/Perfil';
