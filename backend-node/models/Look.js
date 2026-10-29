@@ -11,6 +11,15 @@ const lookSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Prenda'
   }],
+  // --- Integración Nombre y Temporada para asignación al Calendario ---
+  nombre: {
+    type: String,
+    default: ''
+  },
+  temporada: {
+    type: String,
+    default: 'Todo el año'
+  },
   ocasion: String,
   explicacion: String,
   consejo_color: String,
@@ -26,4 +35,3 @@ const lookSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Look', lookSchema);
-

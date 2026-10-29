@@ -17,6 +17,8 @@ const Producto = require('./models/Producto');
 const Uso = require('./models/Uso');
 const ChatSession = require('./models/ChatSession');
 const { styleAI, seleccionarFotoCurada } = require('./services/styleAI');
+const { createArmarioRouter, parsearOcasiones } = require('./routes/armarioModules');
+const { obtenerFechaDiaLocal, recalcularUsosUsuario } = require('./services/analyticsService');
 
 const app = express();
 app.use(cors());
@@ -490,11 +492,36 @@ app.put('/api/usuario/presupuesto', authMiddleware, async (req, res) => {
   }
 });
 
+// --- INTEGRACIÓN MÓDULOS DE ARMARIO (Importador Web, Básicos, Calendario OOTD, Analítica) ---
+app.use('/api', createArmarioRouter({
+  authMiddleware,
+  cloudinary,
+  pythonApiUrl: PYTHON_API_URL,
+  styleAI,
+  upload
+}));
+
 // --- PRENDAS ---
 app.post('/api/prendas', authMiddleware, upload.single('imagen'), async (req, res) => {
+  req.setTimeout(60000);
+  res.setTimeout(60000);
   try {
     if (!req.file) return res.status(400).json({ error: 'Imagen requerida' });
-    const { nombre, categoria } = req.body;
+    const {
+      nombre,
+      marca,
+      categoria,
+      color_principal,
+      color_hex,
+      color_secundario,
+      color_secundario_hex,
+      subtono,
+      tono_estacional,
+      material,
+      temporada,
+      ocasiones,
+      origen_carga
+    } = req.body;
 
     let finalImgUrl = null;
     let colorAnalisisPython = {};
@@ -508,7 +535,7 @@ app.post('/api/prendas', authMiddleware, upload.single('imagen'), async (req, re
 
       const pythonRes = await axios.post(`${PYTHON_API_URL}/prenda`, formData, {
         headers: { ...formData.getHeaders() },
-        timeout: 25000
+        timeout: 35000
       });
 
       const cleanedImg = pythonRes.data.image_base64;
@@ -539,19 +566,29 @@ app.post('/api/prendas', authMiddleware, upload.single('imagen'), async (req, re
     // 3. Etiquetado inteligente con IA + datos de la prenda
     const data = await styleAI.etiquetarPrenda(finalImgUrl, colorAnalisisPython);
 
+    const origenValido = ['camara', 'galeria', 'web', 'basicos'].includes(origen_carga)
+      ? origen_carga
+      : 'galeria';
+
     const nueva = new Prenda({
       usuarioId: req.user.id,
-      nombre: nombre || data.nombre || 'Prenda IA',
+      nombre: (nombre && nombre.trim()) || data.nombre || 'Prenda IA',
+      marca: (marca && marca.trim()) || data.marca || 'Sin marca',
       categoria: categoria || data.categoria || 'Other',
       url_imagen_limpia: finalImgUrl,
       descripcion: data.descripcion || descripcionPython || 'Prenda registrada en tu colección personal.',
-      color_principal: data.color || 'Neutro',
-      color_hex: data.color_hex || colorAnalisisPython.color_hex || '#222222',
-      subtono: data.subtono || colorAnalisisPython.subtono || 'Neutro',
-      material: data.material || 'Algodón / Mezcla',
+      color_principal: (color_principal && color_principal.trim()) || data.color || 'Neutro',
+      color_hex: color_hex || data.color_hex || colorAnalisisPython.color_hex || '#222222',
+      color_secundario: color_secundario !== undefined ? color_secundario : (data.color_secundario || ''),
+      color_secundario_hex: color_secundario_hex !== undefined ? color_secundario_hex : (data.color_secundario_hex || ''),
+      subtono: subtono || data.subtono || colorAnalisisPython.subtono || 'Neutro',
+      tono_estacional: tono_estacional || data.tono_estacional || subtono || data.subtono || 'Neutro',
+      material: (material && material.trim()) || data.material || 'Algodón / Mezcla',
       corte_silueta: data.corte_silueta || 'Regular',
       estilo: data.estilo || 'Casual',
-      temporada: data.temporada || 'Todo el año',
+      temporada: temporada || data.temporada || 'Todo el año',
+      ocasiones: parsearOcasiones(ocasiones, data.ocasiones || ['Casual']),
+      origen_carga: origenValido,
       formalidad: Number(data.formalidad) || 3,
       tags_ia: Array.isArray(data.tags) ? data.tags : []
     });
@@ -592,7 +629,7 @@ app.put('/api/prendas/:id/imagen', authMiddleware, upload.single('imagen'), asyn
 
       const pythonRes = await axios.post(`${PYTHON_API_URL}/prenda`, formData, {
         headers: { ...formData.getHeaders() },
-        timeout: 25000
+        timeout: 35000
       });
       const cleanedImg = pythonRes.data.image_base64;
       colorAnalisisPython = pythonRes.data.analisis || {};
@@ -807,13 +844,15 @@ app.post('/api/looks/feedback', authMiddleware, async (req, res) => {
 
 app.post('/api/looks/save', authMiddleware, async (req, res) => {
   try {
-    const { prendasIds, ocasion, explicacion, consejo_color, score } = req.body;
+    const { prendasIds, nombre, temporada, ocasion, explicacion, consejo_color, score } = req.body;
     if (!Array.isArray(prendasIds) || prendasIds.length === 0) {
       return res.status(400).json({ error: 'Debes incluir al menos una prenda en el look' });
     }
     const nuevo = new Look({
       usuarioId: req.user.id,
       prendas: prendasIds,
+      nombre: nombre || '',
+      temporada: temporada || 'Todo el año',
       ocasion: ocasion || 'Casual',
       explicacion: explicacion || 'Look personalizado guardado en favoritos.',
       consejo_color: consejo_color || '',
@@ -843,28 +882,35 @@ app.delete('/api/looks/:id', authMiddleware, async (req, res) => {
   res.json({ message: 'Eliminado' });
 });
 
-// --- HISTORIAL DE USO ---
+// --- HISTORIAL DE USO (SINCRONIZADO CON CALENDARIO OOTD) ---
 app.post('/api/uso', authMiddleware, async (req, res) => {
   try {
-    const { prendasIds, lookId, fecha } = req.body;
+    const { prendasIds, lookId, fecha, fechaDia, ocasion, clima, notas, estado } = req.body;
     if (!Array.isArray(prendasIds) || prendasIds.length === 0) {
       return res.status(400).json({ error: 'Se requieren prendas para registrar el uso' });
     }
+    const hoyDia = obtenerFechaDiaLocal(new Date());
+    const diaNormalizado = (typeof fechaDia === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fechaDia))
+      ? fechaDia
+      : obtenerFechaDiaLocal(fecha ? new Date(fecha) : new Date());
+
+    const estadoFinal = estado && ['usado', 'planificado'].includes(estado)
+      ? estado
+      : (diaNormalizado > hoyDia ? 'planificado' : 'usado');
+
     const nuevoUso = new Uso({
       usuarioId: req.user.id,
       prendas: prendasIds,
       lookId: lookId || null,
-      fecha: fecha || new Date()
+      fecha: fecha ? new Date(fecha) : new Date(`${diaNormalizado}T12:00:00`),
+      fechaDia: diaNormalizado,
+      ocasion: ocasion || 'Casual',
+      clima: clima || '',
+      notas: notas ? String(notas).slice(0, 280) : '',
+      estado: estadoFinal
     });
     await nuevoUso.save();
-
-    await Prenda.updateMany(
-      { _id: { $in: prendasIds }, usuarioId: req.user.id },
-      {
-        $inc: { contadorUsos: 1 },
-        $set: { ultimoUso: fecha || new Date() }
-      }
-    );
+    await recalcularUsosUsuario(req.user.id);
 
     res.status(201).json(nuevoUso);
   } catch (error) {
@@ -909,7 +955,12 @@ app.get('/api/chat/sessions/:id', authMiddleware, async (req, res) => {
 
 app.post('/api/chat', authMiddleware, async (req, res) => {
   try {
-    const { mensaje, sessionId } = req.body;
+    const rawMensaje = typeof req.body?.mensaje === 'string' ? req.body.mensaje.trim() : '';
+    const { sessionId } = req.body || {};
+    if (!rawMensaje) {
+      return res.status(400).json({ error: 'El mensaje no puede estar vacío.' });
+    }
+    const mensaje = rawMensaje.slice(0, 1200);
     const user = await Usuario.findById(req.user.id);
     const prendas = await Prenda.find({ usuarioId: req.user.id });
 
