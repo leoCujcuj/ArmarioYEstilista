@@ -29,6 +29,51 @@ class Base64ImageRequest(BaseModel):
     image_base64: str
 
 
+def normalizar_recorte_rgba(rgba_bytes: bytes, input_bytes: bytes, cat_lower: str) -> bytes:
+    """Corrige la salida apilada 3x de u2net_cloth_seg y centra la prenda eliminando márgenes transparentes excesivos."""
+    try:
+        img_orig = Image.open(io.BytesIO(input_bytes))
+        orig_w, orig_h = img_orig.size
+        img_out = Image.open(io.BytesIO(rgba_bytes)).convert("RGBA")
+        out_w, out_h = img_out.size
+
+        # u2net_cloth_seg devuelve 3 paneles verticales apilados (upper, lower, full)
+        if out_h >= int(orig_h * 2.5) and out_w == orig_w:
+            band_h = out_h // 3
+            if cat_lower in ["bottom", "pantalon", "falda", "jeans"]:
+                band = img_out.crop((0, band_h, out_w, band_h * 2))
+            elif cat_lower in ["top", "outerwear", "camisa", "abrigo"]:
+                band = img_out.crop((0, 0, out_w, band_h))
+            else:
+                band = img_out.crop((0, band_h * 2, out_w, out_h))
+
+            arr_band = np.array(band)
+            if np.count_nonzero(arr_band[:, :, 3] > 25) < (orig_w * band_h * 0.03):
+                band = img_out.crop((0, band_h * 2, out_w, out_h))
+            img_out = band
+
+        arr = np.array(img_out)
+        if arr.ndim == 3 and arr.shape[2] == 4:
+            ys, xs = np.where(arr[:, :, 3] > 25)
+            if len(xs) > 0 and len(ys) > 0:
+                x0, x1 = int(xs.min()), int(xs.max()) + 1
+                y0, y1 = int(ys.min()), int(ys.max()) + 1
+                cropped = img_out.crop((x0, y0, x1, y1))
+                cw, ch = cropped.size
+                pad_x = max(12, int(cw * 0.06))
+                pad_y = max(12, int(ch * 0.06))
+                canvas = Image.new("RGBA", (cw + pad_x * 2, ch + pad_y * 2), (0, 0, 0, 0))
+                canvas.paste(cropped, (pad_x, pad_y), cropped)
+                img_out = canvas
+
+        buf = io.BytesIO()
+        img_out.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception as ex:
+        print(f"Aviso normalizando recorte RGBA: {ex}")
+        return rgba_bytes
+
+
 def es_recorte_valido(rgba_bytes: bytes, min_visible_ratio: float = 0.03) -> bool:
     """Verifica si la imagen recortada contiene al menos un porcentaje mínimo de píxeles visibles."""
     try:
@@ -177,7 +222,8 @@ async def procesar_prenda(file: UploadFile = File(...), categoria: str = Form("O
         output_image = None
         # 1. Primer intento de remoción con la sesión prioritaria
         try:
-            output_image = remove(input_data, session=primera_sesion)
+            raw_cut = remove(input_data, session=primera_sesion)
+            output_image = normalizar_recorte_rgba(raw_cut, input_data, cat_lower)
         except Exception as e1:
             print(f"Aviso en primer intento de rembg: {e1}")
 
@@ -185,7 +231,8 @@ async def procesar_prenda(file: UploadFile = File(...), categoria: str = Form("O
         if not output_image or not es_recorte_valido(output_image):
             print("Primer recorte inválido o transparente. Reintentando con session_general (u2net)...")
             try:
-                output_image = remove(input_data, session=session_general)
+                raw_cut2 = remove(input_data, session=session_general)
+                output_image = normalizar_recorte_rgba(raw_cut2, input_data, cat_lower)
             except Exception as e2:
                 print(f"Aviso en segundo intento con u2net: {e2}")
 
@@ -257,4 +304,3 @@ async def analizar_persona_base64(payload: Base64ImageRequest):
     except Exception as e:
         print(f"Error en /persona/base64: {str(e)}")
         return {"detectado": False, "error": str(e)}
-
